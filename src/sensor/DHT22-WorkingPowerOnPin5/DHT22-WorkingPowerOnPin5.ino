@@ -3,11 +3,12 @@
 
 #define DHT_DEBUG
 
-#include "VirtualWire.h"
-#include "DHT.h"
+#include <VirtualWire.h>
+#include <DHT.h>
+#include <EEPROM.h>
 
 // pins
-#define BUTTONPIN 2
+#define BUTTON_PIN 2
 #define SENSOR_POWER_PIN 5              // power for DHT sensor
 #define DHTPIN 6                        // data pin for DHT sensor
 #define RFTX_PIN 12                     // data pin for RF Transmission
@@ -18,7 +19,12 @@
 #define DHTTYPE DHT22                   // DHT 22  (AM2302)
 #define SENSOR_POWER_HEATUP_DELAY 500   // wait for power stabilization
 
-char* sensor_id = "Sensor1"; // TODO: this will be later loaded from EEPROM
+// EEPROM ADDRESSES
+#define EE_SID_ADDR 0
+#define EE_SMODE_ADDR EE_SID_ADDR + sizeof(sensor_id)
+
+unsigned int sensor_id = 42;  // from EEPROM on address EE_SID_ADDR
+unsigned int smode = 0;       // from EEPROM on address EE_SMODE_ADDR
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -28,8 +34,15 @@ void setup() {
     Serial.begin(9600);
   #endif
   
+  // reading sensor id from EEPROM
+  EEPROM.get(EE_SID_ADDR, sensor_id);
   DEBUG_PRINT("Hello, I'm sensor: ");
   DEBUG_PRINTLN(sensor_id);
+
+  // reading smode from EEPROM
+  EEPROM.get(EE_SMODE_ADDR, smode);
+  DEBUG_PRINT("Current sending mode is: ");
+  DEBUG_PRINTLN(smode);
 
   DEBUG_PRINT("Powering sensors from pin ");
   DEBUG_PRINTLN(SENSOR_POWER_PIN);
@@ -44,10 +57,40 @@ void setup() {
   
   vw_set_tx_pin(RFTX_PIN);
   vw_setup(RFTX_RATE);
+
+  // interrupt handler that will be activated when the user presses a button
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), on_button_press, RISING);
+}
+
+#define MILLISEC  1
+#define SECOND    1000 * MILLISEC
+#define MINUTE    60 * SECOND
+#define HOUR      60 * MINUTE
+
+#define SMODE_COUNT 4
+const int smode_delays_ms[SMODE_COUNT] = { 2*SECOND, 1*MINUTE, 10*MINUTE, 1*HOUR };
+
+// disty hack: reset function at address 0
+void(* resetFunc) (void) = 0;
+
+/**
+ * Interrupt handler for the "smode" button.
+ */
+void on_button_press() {
+
+  // cycle through sending modes
+  smode = (smode + 1) % SMODE_COUNT;
+
+  // write new smode value to EEPROM
+  EEPROM.put(EE_SMODE_ADDR, smode);
+  
+  // now we can reset the device with a new smode value
+  resetFunc();
 }
 
 void loop() {
 
+  // turn off power from sensors to save battery
   digitalWrite(SENSOR_POWER_PIN, LOW);
 
   // Wait a few seconds between measurements.
@@ -81,7 +124,7 @@ void loop() {
 
   // Now sending a the message through RF module
   char msg[32]; // this buffer is used for sending messages through the RF module
-  sprintf(msg, "%s %d.%d %d.%d %d.%d",
+  sprintf(msg, "%u %i.%u %i.%u %i.%u",
     sensor_id,
     (int) temp, frac2(temp),
     (int) t, frac2(t),
@@ -94,7 +137,7 @@ void loop() {
   DEBUG_PRINTLN(msg);
 }
 
-int frac2(double x) {
+unsigned int frac2(double x) {
   return abs((x - (int) x) * 100);
 }
 
