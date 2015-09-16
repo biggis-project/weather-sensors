@@ -10,13 +10,13 @@
 // pins
 #define BUTTON_PIN 2
 #define SENSOR_POWER_PIN 5              // power for DHT sensor
-#define DHTPIN 6                        // data pin for DHT sensor
+#define DHT_PIN 6                       // data pin for DHT sensor
 #define RFTX_PIN 12                     // data pin for RF Transmission
 #define THERMISTOR_PIN 0                // analog pin of the thermistor
 
 // other config options
-#define RFTX_RATE 2000                  // bits per second
-#define DHTTYPE DHT22                   // DHT 22  (AM2302)
+#define RF_BITRATE 2000                 // bits per second
+#define DHT_TYPE DHT22                  // DHT 22  (AM2302)
 #define SENSOR_POWER_HEATUP_DELAY 500   // wait for power stabilization
 
 // EEPROM ADDRESSES
@@ -26,7 +26,7 @@
 unsigned int sensor_id = 42;  // from EEPROM on address EE_SID_ADDR
 unsigned int smode = 0;       // from EEPROM on address EE_SMODE_ADDR
 
-DHT dht(DHTPIN, DHTTYPE);
+DHT dht(DHT_PIN, DHT_TYPE);
 
 void setup() {
   
@@ -53,10 +53,10 @@ void setup() {
   DEBUG_PRINT("Setting up RF TX module on pin ");
   DEBUG_PRINT(RFTX_PIN);
   DEBUG_PRINT(" using bitrate ");
-  DEBUG_PRINTLN(RFTX_RATE);
+  DEBUG_PRINTLN(RF_BITRATE);
   
   vw_set_tx_pin(RFTX_PIN);
-  vw_setup(RFTX_RATE);
+  vw_setup(RF_BITRATE);
 
   // interrupt handler that will be activated when the user presses a button
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), on_button_press, RISING);
