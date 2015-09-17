@@ -7,6 +7,9 @@
 #include <DHT.h>
 #include <EEPROM.h>
 
+#include "crc32.h"
+#include "thermistor.h"
+
 // pins
 #define BUTTON_PIN 2
 #define SENSOR_POWER_PIN 5              // power for DHT sensor
@@ -122,7 +125,17 @@ void loop() {
   DEBUG_PRINT(h);
   DEBUG_PRINTLN(" %");
 
-  // Now sending a the message through RF module
+//  // Now sending a the message through RF module
+//  struct msg_t {
+//    unsigned int sensor_id;
+//    float temp_thermistor;
+//    float temp_dht;
+//    float humid_dht;
+//  };
+//
+//  struct msg_t msg = {sensor_id, temp, t, h};
+
+ 
   char msg[32]; // this buffer is used for sending messages through the RF module
   sprintf(msg, "%u %i.%u %i.%u %i.%u",
     sensor_id,
@@ -130,27 +143,20 @@ void loop() {
     (int) t, frac2(t),
     (int) h, frac2(h)
   );
-  vw_send((uint8_t *)msg, strlen(msg));
+
+  const unsigned long msgcrc = crc_string(msg);
+  
+  vw_send((uint8_t *)msg, sizeof(msg));
+  vw_send((uint8_t *)msgcrc, sizeof(msgcrc));
   vw_wait_tx(); // Wait until the whole message is gone
   
   DEBUG_PRINT("RF data sent: ");
   DEBUG_PRINTLN(msg);
+  DEBUG_PRINT("CRC = ");
+  DEBUG_PRINTLN(crc_string(msg));
 }
 
 unsigned int frac2(double x) {
   return abs((x - (int) x) * 100);
-}
-
-/**
- * Reads the voltage from a 10K thermistor and transforms
- * it into temparature (celsius).
- */
-double thermistor_to_temp(int RawADC) {
-  double Temp;
-  // See http://en.wikipedia.org/wiki/Thermistor for explanation of formula
-  Temp = log(((10240000 / RawADC) - 10000));
-  Temp = 1 / (0.001129148 + (0.000234125 * Temp) + (0.0000000876741 * Temp * Temp * Temp));
-  Temp = Temp - 273.15;           // Convert Kelvin to Celcius
-  return Temp;
 }
 
