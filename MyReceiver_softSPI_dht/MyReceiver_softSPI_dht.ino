@@ -1,91 +1,109 @@
 #include <nRF24L01p.h>
 #include <UIPEthernet.h>
+#include <ws_common.h>
 
-nRF24L01p receiver(8,7); //CSN,CE
+#define RECV_LOOP_DELAY 5
+#define SECONDS_SINCE_BOOT (.001 * millis())
+#define GATEWAY_MAC_ADDRESS {0x00, 0x01, 0x02, 0x03, 0x04, 0x05}
+
+
+nRF24L01p receiver(8,7); // CSN, CE
 
 const char server[] = "research.ciant.cz";
+const int gwid = 1;
 
 EthernetClient client;
 
 void setup(){
   
-  delay(150);
-  Serial.begin(115200);
-  Serial.println("Serial initialized - Receiver");
+  Serial.begin(9600);
 
-  receiver.channel(90);
-  receiver.RXaddress("wsdataR");
-  receiver.TXaddress("wsdataT");
+  delay(150);
+  receiver.channel(WS_CHANNEL);
+  receiver.RXaddress(WS_RXADDR);
+  receiver.TXaddress(WS_TXADDR);
   receiver.init();
 
-  Serial.println("I'm receiver");
-
-  const uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-  Serial.print("Contacting DHCP server ... ");
+  const uint8_t mac[6] = GATEWAY_MAC_ADDRESS;
+  
+  Serial.println("DHCP request ...");
   Ethernet.begin(mac); // DHCP happens here
-  Serial.println("done");
 
-  Serial.print("localIP: ");
-  Serial.println(Ethernet.localIP());
-  Serial.print("subnetMask: ");
+  Serial.print("IP/mask: ");
+  Serial.print(Ethernet.localIP());
+  Serial.print("/");
   Serial.println(Ethernet.subnetMask());
-  Serial.print("gatewayIP: ");
+  Serial.print("GW: ");
   Serial.println(Ethernet.gatewayIP());
-  Serial.print("dnsServerIP: ");
+  Serial.print("NS: ");
   Serial.println(Ethernet.dnsServerIP());
 }
 
-int dots = 0;
-
 void loop(){
-  while(receiver.available()) {
-    float t;
-    float h;
-    receiver.read();
-    receiver.rxPL(t);
-    receiver.rxPL(h);
-    
-    Serial.print(t);
-    Serial.print(",");
-    Serial.print(h);
 
-    if (client.connect(server, 80)) {
-      Serial.println("connect");
-      // Make a HTTP request:
-      client.print("GET /wsgw.php");
-      client.print("?ts="); client.print( 0.001 * millis() );
-      client.print("&sid="); client.print(1);
-      client.print("&gid="); client.print(1);
-      client.print("&d=");
-      client.print(t);
-      client.print(",");
-      client.print(h);
-      client.println(" HTTP/1.1");
-      
-      client.print("Host: ");
-      client.println(server);
-      
-      client.println("User-Agent: arduino-eth");
-      client.println("Connection: close");
-      client.println();
-      client.flush();
-      client.stop();
-    }
-    else {
-      // if you didn't get a connection to the server:
-      Serial.println("connection failed");
-    }
-    
-    dots = 0;
+  delay(RECV_LOOP_DELAY);
+  if (!receiver.available()) {
+    return;
   }
+
+  ws_sensor_msg_t recv;
   
-  delay(10);
-  if(dots == 0) {
-    Serial.println();
-  } else if(dots % 20 == 0) {
-    Serial.print(".");
+  receiver.read();
+  receiver.rxPL(recv.sid);
+  receiver.rxPL(recv.t);
+  receiver.rxPL(recv.h);
+  receiver.rxPL(recv.csum);
+
+  // checksum must match
+  const byte csum = WS_SENSOR_CSUM(recv);
+  if (recv.csum != csum) {
+    return;
   }
-  dots = (dots + 1) % 400;
+
+  // decode the incomming data
+  const byte sensor_id = recv.sid;
+  const float t = recv.t / 100.0;
+  const float h = recv.h / 100.0;
+
+  // debug info to the serial console
+  Serial.print(SECONDS_SINCE_BOOT);
+  Serial.print(" Sensor:");
+  Serial.print(sensor_id);
+  Serial.print(", t=");
+  Serial.print(t);
+  Serial.print(", h=");
+  Serial.print(h);
+  Serial.print(" ... ");
+
+  if (client.connect(server, 80)) {
+
+    // Make a HTTP request
+    client.print("GET /wsgw.php");
+    client.print("?ts="); client.print(SECONDS_SINCE_BOOT);
+    client.print("&sid="); client.print(sensor_id);
+    client.print("&gid="); client.print(gwid);
+    client.print("&d=");
+    client.print(t);
+    client.print(",");
+    client.print(h);
+    client.println(" HTTP/1.1");
+    
+    client.print("Host: ");
+    client.println(server);
+    
+    client.println("User-Agent: arduino");
+    client.println("Connection: close");
+    client.println();
+    
+  } else {
+    // if you didn't get a connection to the server
+    Serial.println("tcp timeout");
+    return;
+  }
+
+  // at this point, we successfully transmitted the sensor data
+  // to the REST API on a remote server
+  Serial.println("ok");
 }
 
 

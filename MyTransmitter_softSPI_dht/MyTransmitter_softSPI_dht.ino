@@ -2,19 +2,18 @@
 
 #include <nRF24L01p.h>
 #include <DHT.h>
+#include <ws_common.h>
 
 #define SENSOR_POWER_PIN 9              // power for DHT sensor
 #define DHT_PIN 3                       // data pin for DHT sensor
 #define DHT_TYPE DHT22                  // DHT 22  (AM2302)
 #define SENSOR_POWER_HEATUP_DELAY 2000  // wait for power stabilization (millis)
 
-unsigned int sensor_id = 42;  // from EEPROM on address EE_SID_ADDR
-unsigned int smode = 0;       // from EEPROM on address EE_SMODE_ADDR
+const byte sensor_id = 2;
 
 DHT dht(DHT_PIN, DHT_TYPE);
 
-
-nRF24L01p transmitter(8,7);//CSN,CE
+nRF24L01p transmitter(8,7); // CSN, CE
 
 void setup(){
 
@@ -33,12 +32,12 @@ void setup(){
 
   dht.begin();
 
-  DEBUG_PRINT("Setting up RF module on pin ");
-  transmitter.channel(90);
-  transmitter.TXaddress("wsdataT");
-  transmitter.RXaddress("wsdataR");
+  DEBUG_PRINT("Setting up RF module ... ");
+  transmitter.channel(WS_CHANNEL);
+  transmitter.TXaddress(WS_TXADDR);
+  transmitter.RXaddress(WS_RXADDR);
   transmitter.init();
-  Serial.println("I'm transmitter");
+  DEBUG_PRINTLN("done");
 }
 
 void loop() {
@@ -53,25 +52,48 @@ void loop() {
 
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
+  const float h = dht.readHumidity();
+  const float t = dht.readTemperature();
 
   digitalWrite(SENSOR_POWER_PIN, LOW);
 
+  ws_sensor_msg_t tosend = {
+    sensor_id,
+    t * 100,
+    h * 100
+  };
+  
+  tosend.csum = WS_SENSOR_CSUM(tosend);
+  
   DEBUG_PRINT("DHT-Temp: ");
-  DEBUG_PRINT(t);
+  DEBUG_PRINT(tosend.t);
   DEBUG_PRINT(" °C, ");
   DEBUG_PRINT("DHT-Hum: ");
-  DEBUG_PRINT(h);
-  DEBUG_PRINTLN(" %");
+  DEBUG_PRINT(tosend.h);
+  DEBUG_PRINT(" % ");
+//  DEBUG_PRINT("csum: ");
+//  DEBUG_PRINT(tosend.csum);
+//  DEBUG_PRINT(" ");
 
   // Now sending a message through RF module
-  transmitter.txPL( t );
-  transmitter.txPL( h );
-  while( ! transmitter.send(SLOW)) {
+  transmitter.txPL( tosend.sid );
+  transmitter.txPL( tosend.t );
+  transmitter.txPL( tosend.h );
+  transmitter.txPL( tosend.csum );
+
+  // try to reach the station, but not too long
+  int i;
+  for (i = 10; i>0 && !transmitter.send(SLOW); --i) {
     DEBUG_PRINT(".");
     delay(100);
   }
-  delay(3000);
+  
+  if (i == 0) {
+    DEBUG_PRINTLN("timeout");
+  } else {
+    DEBUG_PRINTLN("sent");
+  }
+  
+  delay(3000); // later, we will use watchdog to sleep
 }
 
