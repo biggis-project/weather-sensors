@@ -17,6 +17,12 @@
 #define RFTX_PIN 12                     // data pin for RF Transmission
 #define THERMISTOR_PIN 0                // analog pin of the thermistor
 
+//#define SENSOR_POWER_PIN 0              // power for DHT sensor
+//#define RFTX_PIN 1                      // data pin for RF Transmission
+//#define DHT_PIN 2                       // data pin for DHT sensor
+//#define BUTTON_PIN 3
+//#define THERMISTOR_PIN 5                // analog pin of the thermistor
+
 // other config options
 #define RF_BITRATE 2000                 // bits per second
 #define DHT_TYPE DHT22                  // DHT 22  (AM2302)
@@ -62,7 +68,7 @@ void setup() {
   vw_setup(RF_BITRATE);
 
   // interrupt handler that will be activated when the user presses a button
-  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), on_button_press, RISING);
+  //attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), on_button_press, RISING);
 }
 
 #define MILLISEC  1
@@ -99,7 +105,7 @@ void loop() {
   // Wait a few seconds between measurements.
   delay(2000);
   digitalWrite(SENSOR_POWER_PIN, HIGH);
-  delay(SENSOR_POWER_HEATUP_DELAY); // wait for stabilisation
+  delayMicroseconds(1000 * SENSOR_POWER_HEATUP_DELAY); // wait for stabilisation
 
   // Now reading value from termistor
   const double temp = thermistor_to_temp(analogRead(THERMISTOR_PIN));
@@ -146,7 +152,7 @@ void loop() {
 
   const unsigned long msgcrc = crc_string(msg);
   
-  vw_send((uint8_t *)msg, sizeof(msg));
+  vw_send((uint8_t *)msg, strlen(msg));
   vw_send((uint8_t *)msgcrc, sizeof(msgcrc));
   vw_wait_tx(); // Wait until the whole message is gone
   
