@@ -75,38 +75,35 @@ void loop(){
   Serial.print(h);
   Serial.print(" ... ");
 
-  if (client.connect(server, 80)) {
-
-    // Make a HTTP request
-    client.print("GET /wsgw.php");
-    client.print("?ts="); client.print(SECONDS_SINCE_BOOT);
-    client.print("&sid="); client.print(sensor_id);
-    client.print("&gid="); client.print(gwid);
-    client.print("&d=");
-    client.print(t);
-    client.print(",");
-    client.print(h);
-    client.println(" HTTP/1.1");
-    
-    client.print("Host: ");
-    client.println(server);
-    
-    client.println("User-Agent: arduino");
-    client.println("Connection: close");
-    client.println();
-    
-  } else {
-    // if you didn't get a connection to the server
-    Serial.println("tcp timeout");
-    return;
-  }
+//  if (client.connect(server, 80)) {
+//
+//    // Make a HTTP request
+//    client.print("GET /wsgw.php");
+//    client.print("?ts="); client.print(SECONDS_SINCE_BOOT);
+//    client.print("&sid="); client.print(sensor_id);
+//    client.print("&gid="); client.print(gwid);
+//    client.print("&d=");
+//    client.print(t);
+//    client.print(",");
+//    client.print(h);
+//    client.println(" HTTP/1.1");
+//    
+//    client.print("Host: ");
+//    client.println(server);
+//    
+//    client.println("User-Agent: arduino");
+//    client.println("Connection: close");
+//    client.println();
+//    
+//  } else {
+//    // if you didn't get a connection to the server
+//    Serial.println("tcp timeout");
+//    return;
+//  }
 
   // at this point, we successfully transmitted the sensor data
   // to the REST API on a remote server
   Serial.println("ok");
+  Serial.flush();
 }
 
-
-
-
-  
