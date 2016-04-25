@@ -1,6 +1,6 @@
 # Weather sensors developed within BigGIS project
 
-The aim is to create a cheap wireless temparature and humidity sensors that can send sensor readings to cloud through a gateway connected to home router.
+The aim is to create a cheap wireless temperature/humidity sensors that can send sensor readings to a cloud through a gateway connected to a home router.
 
 # Development
 
