@@ -2,6 +2,9 @@
 
 The aim is to create a cheap wireless temperature/humidity sensors that can send sensor readings to a cloud through a gateway connected to a home router.
 
+# Basic idea
+![](hw/arch-overview.jpg)
+
 # Development
 
 ## Gateway
