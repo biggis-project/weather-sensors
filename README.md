@@ -16,9 +16,9 @@ The aim is to create a cheap wireless temparature and humidity sensors that can 
 
 ## Sensor
 
-[se-ortho]: hw/sensor/se-model-ortho.jpg
-[se-side]:  hw/sensor/se-model-side.jpg
-[se-front]: hw/sensor/se-model-front.jpg
+[se-ortho]: hw/sensor/sensor-model-ortho.jpg
+[se-side]:  hw/sensor/sensor-model-side.jpg
+[se-front]: hw/sensor/sensor-model-front.jpg
 
  Side view  | Front view  | Orthographic projection
 ------------|-------------|------------------------
