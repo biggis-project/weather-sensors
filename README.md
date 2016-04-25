@@ -2,12 +2,28 @@
 
 The aim is to create a cheap wireless temparature and humidity sensors that can send sensor readings to cloud through a gateway connected to home router.
 
-## Development
+# Development
 
-[BigGIS]: biggis-project.eu
-[Waffle]: https://waffle.io/biggis-project/biggis-project.github.io
+## Gateway
 
-To see issues from all repositories related to [BigGIS] project, visit [this Waffle Dashboard][Waffle]
+[gw-ortho]: hw/gateway/gw-model-ortho.jpg
+[gw-side]:  hw/gateway/gw-model-side.jpg
+[gw-front]: hw/gateway/gw-model-front.jpg
+
+ Side view  | Front view  | Orthographic projection
+------------|-------------|------------------------
+![gw-side]  | ![gw-front] | ![gw-ortho]
+
+## Sensor
+
+[se-ortho]: hw/sensor/se-model-ortho.jpg
+[se-side]:  hw/sensor/se-model-side.jpg
+[se-front]: hw/sensor/se-model-front.jpg
+
+ Side view  | Front view  | Orthographic projection
+------------|-------------|------------------------
+![se-side]  | ![se-front] | ![se-ortho]
+
 
 ## How to contribute
 - fork, clone, edit, commit, push, create pull request
