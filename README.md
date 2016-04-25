@@ -24,7 +24,7 @@ The aim is to create a cheap wireless temperature/humidity sensors that can send
 - NRF24L01 + PA + LNA (rf module with built-in antenna)
   - 3.3uF to 10uF capacitor (see also [NRF24L01-Howto])
 
-## Sensor
+## Sensor node
 
 [se-ortho]: hw/sensor/sensor-model-ortho.jpg
 [se-side]:  hw/sensor/sensor-model-side.jpg
