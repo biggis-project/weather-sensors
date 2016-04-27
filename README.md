@@ -48,6 +48,6 @@ The aim is to create a cheap wireless temperature/humidity sensors that can send
 - Use Arduino IDE or something similar
 
 ## Required Arduino Libraries
-- Adafruit DHT sensor library : https://github.com/adafruit/DHT-sensor-library
-- UIPEthernet
-- nRF24L01p_SoftSPI
+- [Adafruit DHT sensor library](https://github.com/adafruit/DHT-sensor-library)
+- [UIPEthernet](https://github.com/ntruchsess/arduino_uip)
+- [nRF24L01p + SoftSPI](https://github.com/vsimko/nRF24L01p_SoftSPI)
