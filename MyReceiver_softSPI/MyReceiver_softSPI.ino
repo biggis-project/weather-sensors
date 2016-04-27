@@ -1,3 +1,4 @@
+#include <SoftSPI.h>
 #include <nRF24L01p.h>
 
 nRF24L01p receiver(8,7); //CSN,CE
@@ -32,7 +33,7 @@ void loop(){
 
   String s = String("");
   receiver.rxPL(s);
-  if(s.length() > 0) {
+  if(s.length() > 0 && s[0] >= '0' && s[0] <= '9') {
     Serial.println(s);
   }
 }

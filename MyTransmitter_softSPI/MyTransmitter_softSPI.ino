@@ -1,3 +1,4 @@
+#include <SoftSPI.h>
 #include <nRF24L01p.h>
 
 nRF24L01p transmitter(8,7);//CSN,CE
@@ -19,8 +20,10 @@ void loop() {
   const String msg = String(i);
   
   Serial.println(msg);
+  Serial.flush();
+  
   transmitter.txPL(msg);
-  transmitter.send();
+  transmitter.send(true);
   delay(1000);
   i++;
 }
