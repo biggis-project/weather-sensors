@@ -26,17 +26,14 @@ void loop(){
     return;
   }
   
-  receiver.read();
+  if( ! receiver.read()) {
+    return;
+  }
 
-  char c;
-  receiver.rxPL(c);
-  
-  if(c != 0) {
-    while(c != 0) {
-      Serial.print(c);
-      receiver.rxPL(c);
-    }
-    Serial.println();
+  String s = String("");
+  receiver.rxPL(s);
+  if(s.length() > 0) {
+    Serial.println(s);
   }
 }
 
