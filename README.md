@@ -15,9 +15,14 @@ The aim is to create a cheap wireless temperature/humidity sensors that can send
 [gw-side]:  hw/gateway/gw-model-side.jpg
 [gw-front]: hw/gateway/gw-model-front.jpg
 
+[gw-xside]:  hw/gateway/gw-schema-side.png
+[gw-xtop]:   hw/gateway/gw-schema-top.png
+[gw-xfront]: hw/gateway/gw-schema-front.png
+
  Side view  | Front view  | Orthographic projection
 ------------|-------------|------------------------
 ![gw-side]  | ![gw-front] | ![gw-ortho]
+![gw-xside] | ![gw-xfront]| ![gw-xtop]
 
 - Arduino Nano v3 @5V (MCU with USB-mini connector)
 - ENC28J60 (ethernet module, not the same as original Arduino ethernet shield W5100)
